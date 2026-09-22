@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "description": "Full standard augmentation preset: all broad benign families and all 36 supported 3D artifact-overlay transforms are enabled. The overlay is sampled on 30% of eligible broad-benign/synthetic draws, with one or two transforms per selected draw. Clean and canonical protocol anchors are preserved. Unsupported transforms and optional adversarial, dedicated MP2RAGE stress, and hard-artifact-tail curricula remain off. Paths resolve relative to this JSON.",
+  "training": {
+    "model_type": "masking",
+    "data_dir": "../../NFBS_Dataset/NFBS_Dataset",
+    "model_out_path": "../runs/mask.pt",
+    "results_out_path": "../runs/mask.json",
+    "target_shape": [
+      256,
+      256,
+      256
+    ],
+    "conform_mm": 1.0,
+    "batch_size": 1,
+    "epochs": 100,
+    "lr": 0.0003,
+    "accum_steps": 4,
+    "num_workers": 0,
+    "val_fraction": 0.2,
+    "test_fraction": 0.15,
+    "seed": 0,
+    "device": null,
+    "model_kwargs": {
+      "architecture": "resenc"
+    },
+    "loss_kwargs": {
+      "profile": "recall-boundary"
+    },
+    "ema": true,
+    "ema_decay": 0.99,
+    "warmup_epochs": 5,
+    "synth_online": true,
+    "scan_glob": "*_T1w.nii.gz",
+    "mask_suffix": "_brainmask",
+    "subject_id_regex": null,
+    "allow_unsafe_init": false,
+    "amp": true
+  },
+  "augmentation_preset": "augmentation_presets/standard.json",
+  "sampling": {
+    "p_clean": 0.18,
+    "p_standard": 0.22,
+    "p_benign": 0.3,
+    "p_artifact": 0.3
+  }
+}

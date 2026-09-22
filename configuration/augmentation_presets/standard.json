@@ -1,0 +1,1171 @@
+{
+  "schema_version": 1,
+  "sampling": {
+    "p_clean": 0.18,
+    "p_standard": 0.22,
+    "p_benign": 0.3,
+    "p_artifact": 0.3,
+    "legacy_anchor_augmentation": false,
+    "benign_only_mp2rage_fraction": null,
+    "mixed_mp2rage_fraction": null,
+    "mp2rage_superset_fraction": 0.0,
+    "mp2rage_lower_feature_fraction": 0.0,
+    "mp2rage_posterior_fossa_fraction": 0.0,
+    "mp2rage_target_style_fraction": 0.0,
+    "hard_artifact_tail_fraction": 0.0
+  },
+  "augmentations": [
+    {
+      "name": "saliency_adversarial",
+      "enabled": false,
+      "kind": "pipeline_stage",
+      "settings": {
+        "batch_fraction": 0.25,
+        "start_epoch": 5,
+        "ramp_epochs": 20,
+        "steps": 2,
+        "epsilon": 0.15,
+        "step_size": 0.075,
+        "top_fraction": 0.1,
+        "smooth_kernel": 7,
+        "clean_weight": 0.5
+      }
+    },
+    {
+      "name": "standard_protocols",
+      "enabled": true,
+      "kind": "pipeline_stage",
+      "settings": {
+        "protocols": [
+          {
+            "name": "MPRAGE",
+            "config": {
+              "field": 3.0,
+              "sequence": "MPRAGE",
+              "vendor": "Siemens",
+              "recon": "none"
+            }
+          },
+          {
+            "name": "MP2RAGE",
+            "config": {
+              "field": 3.0,
+              "sequence": "MP2RAGE",
+              "vendor": "Siemens",
+              "recon": "none"
+            }
+          },
+          {
+            "name": "T2",
+            "config": {
+              "field": 3.0,
+              "sequence": "SPACE_T2",
+              "vendor": "Siemens",
+              "recon": "none"
+            }
+          },
+          {
+            "name": "FLAIR",
+            "config": {
+              "field": 3.0,
+              "sequence": "FLAIR",
+              "vendor": "Siemens",
+              "recon": "none"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "realistic_acquisition",
+      "enabled": true,
+      "kind": "pipeline_stage",
+      "settings": {
+        "probability": 0.55,
+        "sequences": [
+          "MPRAGE",
+          "MP2RAGE",
+          "SPGR",
+          "TSE_T2",
+          "SPACE_T2",
+          "FLAIR",
+          "STIR",
+          "DIR",
+          "PSIR",
+          "GRE_SWI"
+        ],
+        "fields": [
+          0.064,
+          0.55,
+          1.5,
+          3.0,
+          5.0,
+          7.0,
+          9.4,
+          10.5,
+          11.7
+        ],
+        "vendors": [
+          "Siemens",
+          "GE",
+          "Philips",
+          "Canon",
+          "UnitedImaging",
+          "Fujifilm"
+        ],
+        "reconstructions": [
+          "none",
+          "GRAPPA",
+          "SENSE",
+          "SMS",
+          "CompressedSensing",
+          "DLRecon"
+        ]
+      }
+    },
+    {
+      "name": "realistic_appearance",
+      "enabled": true,
+      "kind": "pipeline_stage",
+      "settings": {
+        "noise_max": 0.02
+      }
+    },
+    {
+      "name": "tone_mapping",
+      "enabled": true,
+      "kind": "pipeline_stage",
+      "settings": {
+        "gamma_range": [
+          0.7,
+          1.5
+        ],
+        "contrast_range": [
+          0.8,
+          1.3
+        ],
+        "brightness_range": [
+          -0.1,
+          0.1
+        ],
+        "knot_jitter": 0.22
+      }
+    },
+    {
+      "name": "donor_histogram_transfer",
+      "enabled": false,
+      "kind": "pipeline_stage",
+      "settings": {
+        "probability": 0.5
+      },
+      "supported": false,
+      "notes": "Requires an explicit donor pair. Available to array-level callers; this trainer does not supply donor scans, so leave disabled."
+    },
+    {
+      "name": "realistic_bias_field",
+      "enabled": true,
+      "kind": "pipeline_stage",
+      "settings": {
+        "order": 3,
+        "max_strength": 0.7
+      }
+    },
+    {
+      "name": "realistic_noise",
+      "enabled": true,
+      "kind": "pipeline_stage",
+      "settings": {}
+    },
+    {
+      "name": "label_synthesis",
+      "enabled": true,
+      "kind": "pipeline_stage",
+      "settings": {
+        "strength": 1.0,
+        "realistic": true,
+        "p_pathology": 0.22,
+        "p_pediatric": 0.12
+      }
+    },
+    {
+      "name": "morphology",
+      "enabled": true,
+      "kind": "pipeline_stage",
+      "settings": {
+        "probability": 0.7,
+        "strength_range": [
+          0.2,
+          0.45
+        ]
+      }
+    },
+    {
+      "name": "orientation",
+      "enabled": true,
+      "kind": "pipeline_stage",
+      "settings": {
+        "probability": 1.0
+      }
+    },
+    {
+      "name": "resolution",
+      "enabled": true,
+      "kind": "pipeline_stage",
+      "settings": {
+        "probability": 0.6,
+        "factor_range": [
+          1.0,
+          2.2
+        ],
+        "axis_probability": 0.6
+      }
+    },
+    {
+      "name": "artifact_overlay",
+      "enabled": true,
+      "kind": "pipeline_stage",
+      "settings": {
+        "count_range": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "name": "mp2rage_morphology",
+      "enabled": true,
+      "kind": "pipeline_stage",
+      "settings": {
+        "strength_range": [
+          0.08,
+          0.18
+        ]
+      }
+    },
+    {
+      "name": "mp2rage_noise_superset",
+      "enabled": true,
+      "kind": "pipeline_stage",
+      "settings": {}
+    },
+    {
+      "name": "mp2rage_superset",
+      "enabled": false,
+      "kind": "pipeline_stage",
+      "settings": {}
+    },
+    {
+      "name": "mp2rage_lower_feature",
+      "enabled": false,
+      "kind": "pipeline_stage",
+      "settings": {}
+    },
+    {
+      "name": "mp2rage_posterior_fossa",
+      "enabled": false,
+      "kind": "pipeline_stage",
+      "settings": {}
+    },
+    {
+      "name": "mp2rage_target_style",
+      "enabled": false,
+      "kind": "pipeline_stage",
+      "settings": {}
+    },
+    {
+      "name": "hard_artifact_tail",
+      "enabled": false,
+      "kind": "pipeline_stage",
+      "settings": {}
+    },
+    {
+      "name": "aliasing",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "anisotropy",
+      "enabled": true,
+      "kind": "geometry",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.2,
+          0.75
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "bias",
+      "enabled": true,
+      "kind": "intensity",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "blob",
+      "enabled": true,
+      "kind": "focal",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "bounce_point_null",
+      "enabled": true,
+      "kind": "intensity",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.15,
+          0.45
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "brain_contrast",
+      "enabled": false,
+      "kind": "intensity",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          3.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "brain_intensity",
+      "enabled": false,
+      "kind": "intensity",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.1,
+          3.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "chemical_shift",
+      "enabled": true,
+      "kind": "intensity",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.12,
+          0.8
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "clipping",
+      "enabled": true,
+      "kind": "intensity",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "constant",
+      "enabled": false,
+      "kind": "meta",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "create_ring",
+      "enabled": true,
+      "kind": "focal",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "dc_offset",
+      "enabled": false,
+      "kind": "kspace",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "defacing",
+      "enabled": false,
+      "kind": "focal",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "dl_recon",
+      "enabled": true,
+      "kind": "structure",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "draw_shape",
+      "enabled": true,
+      "kind": "intensity",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "draw_shape_opacity",
+      "enabled": false,
+      "kind": "intensity",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "dropout",
+      "enabled": true,
+      "kind": "focal",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.2,
+          0.5
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "droppatch",
+      "enabled": true,
+      "kind": "focal",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.2,
+          0.6
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "eye_ghosting",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "fse_echo_train",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "g_factor_noise",
+      "enabled": true,
+      "kind": "noise",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.12,
+          0.35
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "ghosting",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "gibbs",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "gradient_nonlinearity",
+      "enabled": false,
+      "kind": "geometry",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "herringbone",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "incomplete_fat_sat",
+      "enabled": true,
+      "kind": "intensity",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "metal",
+      "enabled": false,
+      "kind": "focal",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          1.0,
+          5.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "metal_3d",
+      "enabled": true,
+      "kind": "focal",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "metal_dipole",
+      "enabled": false,
+      "kind": "focal",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "metal_paint",
+      "enabled": false,
+      "kind": "focal",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "metal_pileup",
+      "enabled": false,
+      "kind": "focal",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "metal_void",
+      "enabled": true,
+      "kind": "focal",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "motion",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          1.1
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "motion_blur",
+      "enabled": false,
+      "kind": "kspace",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "motion_continuous",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "motion_ghost_stack",
+      "enabled": false,
+      "kind": "kspace",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "motion_pe_replicas",
+      "enabled": false,
+      "kind": "kspace",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "motion_pulsation",
+      "enabled": false,
+      "kind": "kspace",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "mp2rage_3d",
+      "enabled": false,
+      "kind": "intensity",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.3
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "mp2rage_background",
+      "enabled": false,
+      "kind": "noise",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "mp2rage_grain",
+      "enabled": false,
+      "kind": "noise",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "mp2rage_lut",
+      "enabled": false,
+      "kind": "intensity",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "mp2rage_tissue_noise",
+      "enabled": false,
+      "kind": "noise",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "noise",
+      "enabled": true,
+      "kind": "noise",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.1,
+          0.34
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "noise_overlay",
+      "enabled": false,
+      "kind": "noise",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "noise_random",
+      "enabled": false,
+      "kind": "noise",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "noise_straight",
+      "enabled": false,
+      "kind": "noise",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "nonfinite",
+      "enabled": false,
+      "kind": "meta",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          0.05
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "nyquist_ghost",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "pe_undersample",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "quantization",
+      "enabled": true,
+      "kind": "intensity",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "random_erasing",
+      "enabled": true,
+      "kind": "intensity",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "randomize_resolution",
+      "enabled": false,
+      "kind": "geometry",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.35,
+          0.95
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "rician_noise",
+      "enabled": true,
+      "kind": "noise",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.1,
+          0.6
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "ringing_3d",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "signal_drop_band",
+      "enabled": true,
+      "kind": "noise",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "skull_contrast",
+      "enabled": false,
+      "kind": "intensity",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          3.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "skull_intensity",
+      "enabled": false,
+      "kind": "intensity",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.1,
+          3.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "slab_wrap",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "spike",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "spin_history",
+      "enabled": true,
+      "kind": "structure",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "susceptibility_distortion",
+      "enabled": false,
+      "kind": "geometry",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "t2_3d",
+      "enabled": false,
+      "kind": "intensity",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.3
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "t2_remap",
+      "enabled": false,
+      "kind": "intensity",
+      "supported": false,
+      "settings": {
+        "severity_range": [
+          0.0,
+          1.0
+        ],
+        "params": {}
+      },
+      "notes": "Available low-level program; excluded from the training overlay because it is 2D-only, changes geometry, duplicates a pipeline stage, or is outside the validated masker artifact pool."
+    },
+    {
+      "name": "void",
+      "enabled": true,
+      "kind": "focal",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    },
+    {
+      "name": "zipper",
+      "enabled": true,
+      "kind": "kspace",
+      "supported": true,
+      "settings": {
+        "severity_range": [
+          0.3,
+          0.85
+        ],
+        "params": {}
+      }
+    }
+  ],
+  "description": "Shared standard MRI augmentation inventory. Run files override sampling or named augmentation settings."
+}

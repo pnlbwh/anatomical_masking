@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "description": "Independent masking run. Paths resolve relative to this JSON. sampling controls domain shares; each augmentation has explicit enabled/settings controls. A disabled rendering tier retains its input; later enabled stages may still apply. Unsupported registry programs are listed for completeness and must remain disabled in the 3D training overlay. Calibration constants remain versioned inside the augmentation programs.",
+  "training": {
+    "model_type": "masking",
+    "data_dir": "../../NFBS_Dataset/NFBS_Dataset",
+    "model_out_path": "../runs/mask.pt",
+    "results_out_path": "../runs/mask.json",
+    "target_shape": [
+      128,
+      128,
+      128
+    ],
+    "conform_mm": 2.0,
+    "batch_size": 1,
+    "epochs": 100,
+    "lr": 0.0003,
+    "accum_steps": 4,
+    "num_workers": 0,
+    "val_fraction": 0.2,
+    "test_fraction": 0.15,
+    "seed": 0,
+    "device": null,
+    "model_kwargs": {
+      "architecture": "resenc"
+    },
+    "loss_kwargs": {
+      "profile": "recall-boundary"
+    },
+    "ema": true,
+    "ema_decay": 0.99,
+    "warmup_epochs": 5,
+    "synth_online": true,
+    "scan_glob": "*_T1w.nii.gz",
+    "mask_suffix": "_brainmask",
+    "subject_id_regex": null,
+    "allow_unsafe_init": false
+  },
+  "augmentation_preset": "augmentation_presets/standard.json",
+  "sampling": {
+    "p_clean": 0.18,
+    "p_standard": 0.22,
+    "p_benign": 0.3,
+    "p_artifact": 0.3
+  }
+}
