@@ -1,4 +1,4 @@
-# Condensed brain-mask workflow
+# Brain-mask workflow
 
 Train MRI brain-segmentation models, generate masks, and evaluate predictions.
 
