@@ -236,8 +236,20 @@ def _registry_params(name, scan, mask, spacing, severity, rng):
     return params
 
 
-def render_augmentation(scan, mask, affine_mm, spec, rng):
-    """Render one catalog entry and return image, paired target, and replay metadata."""
+def uses_normalized_source(spec):
+    """Whether this condition renders from the normalized original source scan."""
+    return spec["kind"] not in ("clean", "rotation", "resize", "resolution", "mild_mix")
+
+
+def render_augmentation(scan, mask, affine_mm, spec, rng, *, normalized_scan=None):
+    """Render one catalog entry and return image, paired target, and replay metadata.
+
+    ``normalized_scan`` optionally caches ``normalize_intensity(scan)`` for repeated
+    appearance conditions. It must come from this same, unmodified original scan,
+    never a previous augmented image. The caller retains ownership; read-only
+    arrays are supported and this function does not mutate the cache. Clean and
+    geometric conditions always use the raw scan and ignore the cache.
+    """
     scan = np.asarray(scan, dtype=np.float32)
     mask = np.asarray(mask, dtype=bool)
     affine = np.asarray(affine_mm, dtype=np.float64)
@@ -254,9 +266,18 @@ def render_augmentation(scan, mask, affine_mm, spec, rng):
     spacing = np.linalg.norm(affine[:3, :3], axis=0).tolist()
     metadata = {"name": spec["name"], "tier": spec["tier"], "render_seed": seed,
                 "voxel_sizes_mm": spacing, "native_grid_preserved": True,
-                "normalized_for_renderer": kind not in ("clean", "rotation", "resize", "resolution", "mild_mix")}
+                "normalized_for_renderer": uses_normalized_source(spec)}
     target = mask.copy()
-    reference = (normalize_intensity(scan) if metadata["normalized_for_renderer"] else scan)
+    if metadata["normalized_for_renderer"] and normalized_scan is not None:
+        if (not isinstance(normalized_scan, np.ndarray)
+                or normalized_scan.dtype != np.float32 or normalized_scan.shape != scan.shape):
+            raise ValueError("normalized_scan must be a float32 ndarray matching the original scan shape")
+        if (not np.isfinite(normalized_scan).all()
+                or normalized_scan.min() < 0.0 or normalized_scan.max() > 1.0):
+            raise ValueError("normalized_scan must contain finite values in [0, 1]")
+        reference = normalized_scan
+    else:
+        reference = (normalize_intensity(scan) if metadata["normalized_for_renderer"] else scan)
     out = reference.copy()
     with _legacy_random(seed):
         if kind == "clean":

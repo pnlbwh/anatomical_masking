@@ -1,4 +1,4 @@
-"""Evaluate a trained brain masker against held-out, native-space binary masks.
+"""Evaluate a trained brain masker against held-out, native-space reference masks.
 
 Examples:
     python evaluate.py --model runs/model.pt --data-dir heldout --output-dir reports/evaluation
@@ -12,6 +12,8 @@ case. Relative manifest paths resolve against the manifest's own directory.
 
 Inference is the same BrainMasker pipeline used by generate_mask.py, including
 native-space restoration and postprocessing. One model is reused across cases.
+Normalized reference masks use the training convention: float32 values > 0.5
+are foreground. Predicted masks and metric inputs must remain strictly binary.
 Reports include every case; failures have no metric values and do not enter
 aggregates. Empty/empty Dice and IoU are 1; precision or recall with a zero
 denominator is null. Supply a held-out set: this program does not partition data
@@ -42,6 +44,14 @@ from imaging.geometry import nifti_affine_mm
 
 
 METRICS = ("dice", "iou", "precision", "recall")
+REFERENCE_MASK_POLICY = {
+    "name": "training_float32_gt_0_5",
+    "threshold": 0.5,
+    "comparison": ">",
+    "conversion_dtype": "float32",
+    "allowed_range": [0.0, 1.0],
+    "input_files_unchanged": True,
+}
 
 
 def _nifti_stem(path: Path) -> str:
@@ -116,15 +126,31 @@ def read_manifest(manifest) -> List[Dict[str, str]]:
     return cases
 
 
-def _load_volume(path, *, binary=False):
-    """Load a finite 3D volume with a valid affine; allow trailing singleton axes."""
+def _reference_mask(data, *, path):
+    """Apply the training reference protocol without modifying the source data/file."""
+    values = np.asarray(data)
+    if not np.isfinite(values).all():
+        raise ValueError(f"Reference mask must contain finite values in [0, 1]; found NaN or infinity: {path}")
+    if ((values < 0) | (values > 1)).any():
+        raise ValueError(f"Reference mask must contain normalized values in [0, 1]; "
+                         f"observed range [{values.min():g}, {values.max():g}]: {path}")
+    # Match training.data's float32 > 0.5 conversion, including values close to 0.5.
+    return np.asarray(values, dtype=np.float32) > 0.5
+
+
+def _load_volume(path, *, binary=False, reference=False):
+    """Load a finite 3D volume; reference conversion and strict binary checks are separate."""
+    if binary and reference:
+        raise ValueError("binary and reference loading modes are mutually exclusive")
     img = nib.load(str(path))
     nifti_affine_mm(img)  # validates the spatial dimensions, units, and affine
     data = img.get_fdata(dtype=np.float64).reshape(img.shape[:3])
+    if reference:
+        return img, _reference_mask(data, path=path)
     if not np.isfinite(data).all():
         raise ValueError(f"Volume contains NaN or infinity: {path}")
     if binary and not np.logical_or(data == 0, data == 1).all():
-        raise ValueError(f"Reference/predicted mask must contain only binary 0 and 1 values: {path}")
+        raise ValueError(f"Binary mask must contain only binary 0 and 1 values: {path}")
     return img, data.astype(bool) if binary else data
 
 
@@ -208,7 +234,7 @@ def evaluate_model(model_path, *, data_dir=None, manifest=None,
                 raise ValueError(case["discovery_error"])
             _nifti_stem(Path(case["scan"]))
             scan_img, scan_data = _load_volume(case["scan"])
-            ref_img, reference = _load_volume(case["mask"], binary=True)
+            ref_img, reference = _load_volume(case["mask"], reference=True)
             _check_grid(scan_img, scan_data.shape, ref_img, reference.shape, affine_atol=affine_atol)
             del scan_data
             result = masker.predict(scan_path=case["scan"], image=scan_img)
@@ -242,6 +268,7 @@ def evaluate_model(model_path, *, data_dir=None, manifest=None,
         "case_count": len(results), "successful_cases": len(good), "failed_cases": len(results) - len(good),
         "review_flagged_cases": sum(bool(row.get("review_flag")) for row in good),
         "affine_tolerance": affine_atol,
+        "reference_mask_policy": dict(REFERENCE_MASK_POLICY),
         "metric_policy": {"empty_empty_dice_iou": 1.0, "zero_denominator_precision_recall": None,
                           "failed_cases": "excluded from aggregates; retained in cases",
                           "std": "population standard deviation",
