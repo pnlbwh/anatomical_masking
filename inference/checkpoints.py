@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional
 
 import torch
 
-from models.architectures import build_model
+from anatomical_masking.models.architectures import build_model
 
 
 class MaskingCheckpoint:
@@ -188,7 +188,7 @@ def _read_embedded_masking_config(model_path: Path, *, checkpoint=None) -> Optio
         return None
     stored_hash = obj.get("preproc_hash")
     if stored_hash:
-        from imaging.metadata import preproc_config_hash
+        from anatomical_masking.imaging.metadata import preproc_config_hash
         actual_hash = preproc_config_hash(cfg)
         if actual_hash != stored_hash:
             raise RuntimeError(

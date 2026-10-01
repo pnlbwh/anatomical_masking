@@ -40,15 +40,15 @@ import torch
 import torch.nn.functional as F
 
 # Allow direct execution as well as imports through the bundle entry point.
-_HERE = str(Path(__file__).resolve().parents[1])
+_HERE = str(Path(__file__).resolve().parents[2])
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
-from models.architectures import postprocess_mask
-from imaging.geometry import nifti_affine_mm
-from inference.checkpoints import (MaskingCheckpoint, load_masking_model,
+from anatomical_masking.models.architectures import postprocess_mask
+from anatomical_masking.imaging.geometry import nifti_affine_mm
+from anatomical_masking.inference.checkpoints import (MaskingCheckpoint, load_masking_model,
                                    _checkpoint_name, _find_sidecar_config, _read_masking_config)
-from imaging.normalization import normalize_intensity, zscore
+from anatomical_masking.imaging.normalization import normalize_intensity, zscore
 
 
 def paths_alias(left, right) -> bool:
